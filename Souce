@@ -1,3 +1,27 @@
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/RinRi3PointXD/UI/main/MMM"))()
+
+local Config = { 
+	WindowName = "แม่กู HUB", 
+	Color = _G.ThemColor, 
+	Keybind = Enum.KeyCode.RightAlt
+}
+local Window = Library:CreateWindow(Config, game:GetService("CoreGui"))
+local GeneralTab = Window:CreateTab("General")
+local MMMM_General_Section = GeneralTab:CreateSection("MMMM")
+
+MMMM_General_Section:CreateToggle("Big Farm", nil, function(State) 
+	_G.Auto = State
+end)
+
+local Toggle = MMMM_General_Section:CreateToggle("UI Toggle", nil, function(State) 
+	Window:Toggle(State) 
+end) 
+
+Toggle:CreateKeybind(tostring(Config.Keybind):gsub("Enum.KeyCode.", ""), function(Key) 
+	Config.Keybind = Enum.KeyCode[Key] 
+end) 
+Toggle:SetState(true)
+
 local Finded = false
 local ArrowReady = false
 local RokaReady = false
