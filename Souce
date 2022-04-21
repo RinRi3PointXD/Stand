@@ -1,0 +1,505 @@
+local Finded = false
+local ArrowReady = false
+local RokaReady = false
+
+local Connection = nil
+
+local Stand = game:GetService("Players").LocalPlayer.Data.Stand.Value
+local Attri = game:GetService("Players").LocalPlayer.Data.Attri.Value
+
+local Send_Remote = game:GetService("ReplicatedStorage").Events.SpeedJump
+local Player = game:GetService("Players").LocalPlayer
+
+--Bypass
+do
+	local old;
+	old = hookmetamethod(game, "__namecall", function(...)
+		local self = ...
+		if not checkcaller() then
+			if self == Send_Remote and getnamecallmethod() == "FireServer" then
+				return old(self, 16, 7.199999809265137, 50);
+			elseif getnamecallmethod() == "Destroy" and self.Name == "Fortnite" then
+				return;
+			end;
+		end;
+		return old(...);
+	end);
+
+	if not Player.Character or (Player.Character and not Player.Character:FindFirstChild('Fortnite')) then
+		repeat wait() until Player.Character and Player.Character:FindFirstChild('Fortnite');
+	end;
+
+	Player.Character.Fortnite.Disabled = true;
+
+	Player.CharacterAdded:Connect(function(chr)
+		chr.ChildAdded:Connect(function(v)
+			if v.Name == "Fortnite" then
+				v.Disabled = true;
+			end;
+		end);
+	end);
+end;
+
+local Connections = {}
+
+function MakeConnection(Mob)
+	if not Connections[Mob] and Mob:FindFirstChildOfClass("Humanoid") then
+		local tbl = game.Players:GetPlayers()
+		for i,v in pairs(tbl) do
+			if Mob == v.Character then
+				return
+			end
+		end
+		Connections[Mob] = Mob.Humanoid:GetPropertyChangedSignal("Health"):Connect(function()
+			for i = 1, 20 do
+				Mob.Humanoid.Health = 0
+			end
+		end)
+	end
+end
+
+function GetTotalRoka()
+	if game:GetService("Players").LocalPlayer.Backpack:FindFirstChildWhichIsA("ValueBase") == nil then
+		local Total = 0
+
+		for i,v in pairs(game:GetService("Players").LocalPlayer.Backpack:GetChildren()) do
+			if v:IsA("Tool") and v.Name == "Rokakaka" then
+				Total += 1
+			end
+		end
+
+		return Total
+	end	
+end
+
+function GetTotalArrow()
+	if game:GetService("Players").LocalPlayer.Backpack:FindFirstChildWhichIsA("ValueBase") == nil then
+		local Total = 0
+
+		for i,v in pairs(game:GetService("Players").LocalPlayer.Backpack:GetChildren()) do
+			if v:IsA("Tool") and v.Name == "Charged Arrow" then
+				Total += 1
+			end
+		end
+
+		return Total
+	end	
+end
+
+for i,v in pairs(workspace:GetDescendants()) do
+	if v:IsA("Seat") then
+		v:Destroy()
+	end
+end
+
+game:GetService("Players").LocalPlayer.Data.Stand.Changed:Connect(function(newValue)
+	if newValue ~= "None" then
+		print("-----------------")
+		print(newValue)	
+	end
+
+	Stand = newValue
+end)
+
+game:GetService("Players").LocalPlayer.Data.Attri.Changed:Connect(function(newValue)
+	if newValue ~= "None" then
+		if table.find(_G.WantedStand,newValue) then
+			warn(newValue)	
+		else
+			print(newValue)	
+		end	
+	end
+
+	Attri = newValue
+end)
+
+game:GetService("Players").LocalPlayer.Idled:connect(function()
+	game:GetService("VirtualUser"):Button2Down(Vector2.new(0,0),workspace.CurrentCamera.CFrame)
+	wait(1)
+	game:GetService("VirtualUser"):Button2Up(Vector2.new(0,0),workspace.CurrentCamera.CFrame)
+end)
+
+game:GetService("RunService").RenderStepped:Connect(function()
+	if _G.Auto == true then
+		pcall(function()
+			setfflag("HumanoidParallelRemoveNoPhysics", "False")
+			setfflag("HumanoidParallelRemoveNoPhysicsNoSimulate2", "False")
+			game:GetService("Players").LocalPlayer.Character.Humanoid:ChangeState(11)
+
+			if game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.RotVelocity.Magnitude >= 50 or game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.Velocity.Magnitude >= 50 then
+				game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.RotVelocity = Vector3.new()
+				game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.Velocity = Vector3.new()
+			end
+		end)
+	end
+end)
+
+game:GetService("RunService").Heartbeat:Connect(function()
+	if _G.Attack == true and _G.Auto == true then
+		if game:GetService("Players").LocalPlayer.Character["Aura"].Value == false then
+			game:GetService("Players").LocalPlayer.Character.StandEvents.Summon:FireServer()
+		end
+
+		for i,v in pairs(game:GetService("Players").LocalPlayer.Character.StandEvents:GetChildren()) do
+			if v:IsA("RemoteEvent") and table.find(_G.WhitListSkill,v.Name) then
+				v:FireServer(true)
+			end
+		end
+	end
+
+	if _G.AutoClearItems == true and _G.Auto == true then
+		pcall(function()
+			for i,v in pairs(game:GetService("Players").LocalPlayer.Backpack:GetChildren()) do
+				if v:IsA("Tool") and not table.find(_G.ItemsWhiteList,v.Name) then
+					v.Parent = game:GetService("Players").LocalPlayer.Character
+				end
+			end
+			wait()
+			for i,v in pairs(game:GetService("Players").LocalPlayer.Character:GetChildren()) do
+				if v:IsA("Tool") and not table.find(_G.ItemsWhiteList,v.Name) then
+					v.Parent = workspace
+				end
+			end
+		end)
+	end
+end)
+
+while wait() do
+	pcall(function()
+		if game:GetService("Players").LocalPlayer.Character.Humanoid.Health > 0 and game:GetService("Players").LocalPlayer.Backpack:FindFirstChildWhichIsA("ValueBase") == nil then
+			local RokakTotal = GetTotalRoka()
+			local ArrowTotal = GetTotalArrow()
+
+			if ArrowTotal >= _G.DefaultArrow then
+				ArrowReady = true
+			end
+
+			if RokakTotal >= _G.DefaultRokaka then
+				RokaReady = true
+			end
+
+			if RokaReady == false then
+				repeat
+					if RokakTotal < _G.DefaultRokaka then
+						local HavedMoney = (RokakTotal/5) * 13750
+						local WantedMoney = _G.DefaultMoney - HavedMoney
+
+						if game:GetService("Players").LocalPlayer.Data.Cash.Value < WantedMoney then
+							_G.Info = {
+								["Quest"] = true;
+								["EnemyName"] = "Jungle Bandit";
+								["QuestName"] = "KillJungleGi";
+								["QuestTitle"] = "Giorno Giovanna [Lvl. 90+]";
+							}
+
+							if game:GetService("Players").LocalPlayer.Data[_G.Stand["Slot"].."Stand"].Value == _G.Stand["Stand"] then
+								repeat
+									if game:GetService("Players").LocalPlayer.Data[_G.Stand["Slot"].."Stand"].Value == _G.Stand["Stand"] then
+										game:GetService("ReplicatedStorage").Events.SwitchStand:FireServer(_G.Stand["Slot"])
+									end
+
+									wait()
+								until game:GetService("Players").LocalPlayer.Data[_G.Stand["Slot"].."Stand"].Value ~= _G.Stand["Stand"]
+							end
+
+							for i,v in pairs(game:GetService("Players").LocalPlayer.Data.StandSkillPoints:GetChildren()) do
+								if v:IsA("ValueBase") and v.Value == false then
+									local args = {
+										[1] = v.Name
+									}
+
+									game:GetService("ReplicatedStorage").Events.GetSkillTreeStand:FireServer(unpack(args))
+								end
+							end
+
+							repeat
+								if _G.Auto == true and game:GetService("Players").LocalPlayer.Character.Humanoid.Health > 0 then		
+									if _G.Info["Quest"] == true then
+										if game:GetService("Players").LocalPlayer.Data.Quests:FindFirstChild(_G.Info["QuestName"]) == nil then
+											repeat
+												for i,v in pairs(game:GetService("Workspace").Fartinglloll:GetDescendants()) do
+													if v:IsA("TextBox") and (v.Text == _G.Info["QuestTitle"] or string.match(v.Text,_G.Info["QuestTitle"])) then
+														if v:FindFirstAncestorWhichIsA("Model") then
+															local chr = v:FindFirstAncestorWhichIsA("Model")
+															if chr.Name == "Person" then
+																chr = chr.Parent
+															end
+
+															chr.Done:FireServer()	
+														end
+													end
+												end
+
+												wait()
+											until game:GetService("Players").LocalPlayer.Data.Quests:FindFirstChild(_G.Info["QuestName"])
+										elseif game:GetService("Players").LocalPlayer.Data.Quests:FindFirstChild(_G.Info["QuestName"]) and Connection == nil then
+											if game:GetService("Players").LocalPlayer.Data.Quests[_G.Info["QuestName"]].Kills.Value >= game:GetService("Players").LocalPlayer.Data.Quests[_G.Info["QuestName"]].MaxKills.Value then
+												repeat
+													for i,v in pairs(game:GetService("Workspace").Fartinglloll:GetDescendants()) do
+														if v:IsA("TextBox") and (v.Text == _G.Info["QuestTitle"] or string.match(v.Text,_G.Info["QuestTitle"])) then
+															if v:FindFirstAncestorWhichIsA("Model") then
+																local chr = v:FindFirstAncestorWhichIsA("Model")
+																if chr.Name == "Person" then
+																	chr = chr.Parent
+																end
+
+																chr.QuestDone:FireServer()
+															end
+														end
+													end
+
+													wait()
+												until game:GetService("Players").LocalPlayer.Data.Quests:FindFirstChild(_G.Info["QuestName"]) == nil
+											end
+
+											Connection = game:GetService("Players").LocalPlayer.Data.Quests[_G.Info["QuestName"]].Kills.Changed:Connect(function(updatevalue)
+												if updatevalue >= game:GetService("Players").LocalPlayer.Data.Quests[_G.Info["QuestName"]].MaxKills.Value then
+													repeat
+														for i,v in pairs(game:GetService("Workspace").Fartinglloll:GetDescendants()) do
+															if v:IsA("TextBox") and (v.Text == _G.Info["QuestTitle"] or string.match(v.Text,_G.Info["QuestTitle"])) then
+																if v:FindFirstAncestorWhichIsA("Model") then
+																	local chr = v:FindFirstAncestorWhichIsA("Model")
+																	if chr.Name == "Person" then
+																		chr = chr.Parent
+																	end
+
+																	chr.QuestDone:FireServer()
+																end
+															end
+														end
+
+														wait()
+													until game:GetService("Players").LocalPlayer.Data.Quests:FindFirstChild(_G.Info["QuestName"]) == nil
+
+													Connection:Disconnect()
+													Connection = nil	
+												end
+											end)
+										end
+									end	
+
+									local LetGo = 0
+
+									for i,v in pairs(workspace["Living"]:GetChildren()) do
+										if v.Name == _G.Info["EnemyName"] and v.Humanoid.Health > 0 then
+											LetGo += 1
+										end
+									end
+
+									if LetGo == 0 then
+										game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(0,0,0)
+										sethiddenproperty(game:GetService("Players").LocalPlayer, "SimulationRadius", math.huge)
+									end
+
+									for i,v in pairs(workspace["Living"]:GetChildren()) do
+										if v.Name == _G.Info["EnemyName"] and v.Humanoid.Health > 0 and _G.Auto == true then
+											spawn(function()
+												repeat
+													if _G.Info["EnemyName"] == v.Name then
+														_G.Attack = true
+
+														game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame = v.HumanoidRootPart.CFrame * CFrame.new(0,10,0) * CFrame.Angles(math.rad(-90),0,0)
+														sethiddenproperty(game:GetService("Players").LocalPlayer, "SimulationRadius", math.huge)
+													end
+
+													wait()
+												until v.Humanoid.Health == 0 or game:GetService("Players").LocalPlayer.Character.Humanoid.Health == 0 or _G.Auto == false or _G.Info["EnemyName"] ~= v.Name
+
+												_G.Attack = false
+											end)		
+										end
+									end
+								end
+
+								wait()
+							until game:GetService("Players").LocalPlayer.Data.Cash.Value > WantedMoney
+
+							local RokakTotal = GetTotalRoka()
+							if RokakTotal < _G.DefaultRokaka then
+								for i = 1,(_G.DefaultRokaka - RokakTotal)/5 do
+									local args = {
+										[1] = "Merchant1",
+										[2] = "Option1"
+									}
+
+									game:GetService("ReplicatedStorage").Events.BuyItem:FireServer(unpack(args))
+								end
+
+								RokaReady = true
+							end
+						else
+							local RokakTotal = GetTotalRoka()
+							if RokakTotal < _G.DefaultRokaka then
+								for i = 1,(_G.DefaultRokaka - RokakTotal)/5 do
+									local args = {
+										[1] = "Merchant1",
+										[2] = "Option1"
+									}
+
+									game:GetService("ReplicatedStorage").Events.BuyItem:FireServer(unpack(args))
+								end
+
+								RokaReady = true
+							end				
+						end
+					end
+
+					if GetTotalRoka() >= _G.DefaultRokaka then
+						RokaReady = true
+					end
+
+					wait()
+				until RokaReady == true
+				RokaReady = true
+			end
+
+			if ArrowReady == false then
+				if game:GetService("Players").LocalPlayer.Data[_G.Stand["Slot"].."Stand"].Value ~= _G.Stand["Stand"] then
+					spawn(function()
+						repeat
+							if game:GetService("Players").LocalPlayer.Data[_G.Stand["Slot"].."Stand"].Value ~= _G.Stand["Stand"] then
+								game:GetService("ReplicatedStorage").Events.SwitchStand:FireServer(_G.Stand["Slot"])
+							end
+
+							wait()
+						until game:GetService("Players").LocalPlayer.Data[_G.Stand["Slot"].."Stand"].Value == _G.Stand["Stand"]
+					end)	
+				end
+
+				repeat
+					if _G.Auto == true and game:GetService("Players").LocalPlayer.Character.Humanoid.Health > 0 then
+						_G.Info = {
+							["EnemyName"] = "Boss";
+							["QuestTitle"] = "i_stabman [Lvl. 80+]";
+						}
+
+						if game:GetService("Players").LocalPlayer.Character.InLair.Value == false then		
+							repeat
+								for i,v in pairs(game:GetService("Workspace").Fartinglloll:GetDescendants()) do
+									if v:IsA("TextBox") and (v.Text == _G.Info["QuestTitle"] or string.match(v.Text,_G.Info["QuestTitle"])) then
+										if v:FindFirstAncestorWhichIsA("Model") then
+											local chr = v:FindFirstAncestorWhichIsA("Model")
+											if chr.Name == "Person" then
+												chr = chr.Parent
+											end
+
+											chr.Done:FireServer()	
+										end
+									end
+								end
+
+								wait()
+							until game:GetService("Players").LocalPlayer.Character.InLair.Value == true	
+						end
+
+						for i,v in pairs(workspace["Living"]:GetChildren()) do
+							if v.Name == _G.Info["EnemyName"] and v.Humanoid.Health > 0 and _G.Auto == true then
+								repeat
+									if _G.Info["EnemyName"] == v.Name then
+										game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame = v.HumanoidRootPart.CFrame * CFrame.new(0,0,5)
+										sethiddenproperty(game:GetService("Players").LocalPlayer, "SimulationRadius", math.huge)
+										MakeConnection(v)
+										_G.Attack = true
+
+									end
+									wait()
+								until v.Humanoid.Health == 0 or game:GetService("Players").LocalPlayer.Character.Humanoid.Health == 0 or _G.Auto == false or _G.Info["EnemyName"] ~= v.Name or game:GetService("Players").LocalPlayer.Character.InLair.Value == false
+								_G.Attack = false
+
+								if Connections[v] then
+									Connections[v]:Disconnect()
+								end
+							end
+						end
+					end
+
+					if GetTotalArrow() >=  _G.DefaultArrow then
+						ArrowReady = true
+					end
+					wait()
+				until ArrowReady == true
+				ArrowReady = true
+			end
+
+			if ArrowReady == true and RokaReady == true then
+				if game:GetService("Players").LocalPlayer.Data[_G.Stand["Slot"].."Stand"].Value ~= _G.Stand["Stand"] then
+					repeat
+						if game:GetService("Players").LocalPlayer.Data[_G.Stand["Slot"].."Stand"].Value ~= _G.Stand["Stand"] then
+							game:GetService("ReplicatedStorage").Events.SwitchStand:FireServer(_G.Stand["Slot"])
+						end
+
+						wait()
+					until game:GetService("Players").LocalPlayer.Data[_G.Stand["Slot"].."Stand"].Value == _G.Stand["Stand"]
+				end
+
+				repeat
+					if Finded == false and _G.Auto == true and game:GetService("Players").LocalPlayer.Character.Humanoid.Health > 0 then
+						for i,v in pairs(_G.WantedStand) do
+							if i == Stand then
+								if table.find(v,Attri) then
+
+									Finded = true
+								end
+							end
+						end
+
+						for i,v in pairs(game:GetService("Players").LocalPlayer.Character:GetChildren()) do
+							if v:IsA("Tool") then
+								v.Parent = game:GetService("Players").LocalPlayer.Backpack
+							end
+						end	
+
+						if not table.find(_G.WantedAttri,Attri) then
+							if Stand == "None" then
+								local Used = nil
+
+								for i,v in pairs(game:GetService("Players").LocalPlayer.Backpack:GetChildren()) do
+									if v:IsA("Tool") and v.Name == "Charged Arrow" and v["Using"].Value == false then
+										Used = v
+									end
+								end
+
+								if Used then
+									Used.Parent = game:GetService("Players").LocalPlayer.Character
+									Used["Use"]:FireServer()
+								elseif Used == nil then
+									ArrowReady = false
+
+									if RokakTotal() < _G.DefaultRokaka then
+										RokaReady = false
+									end
+								end
+							else
+								local Used = nil
+
+								for i,v in pairs(game:GetService("Players").LocalPlayer.Backpack:GetChildren()) do
+									if v:IsA("Tool") and v.Name == "Rokakaka" and v["Using"].Value == false then
+										Used = v
+									end
+								end
+
+								if Used then
+									Used.Parent = game:GetService("Players").LocalPlayer.Character
+
+									if Finded == false then
+										Used["Use"]:FireServer()
+									end
+								elseif Used == nil then
+									RokaReady = false
+
+									if ArrowTotal() < _G.DefaultArrow then
+										ArrowReady = false
+									end
+								end
+							end
+						elseif table.find(_G.WantedAttri,Attri) then
+
+							Finded = true
+						end
+					end
+					wait()
+				until Finded == true or _G.Auto == true
+			end
+		end
+	end)
+end
