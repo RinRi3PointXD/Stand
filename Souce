@@ -202,7 +202,7 @@ while wait() do
 				RokaReady = true
 			end
 
-			if RokaReady == false then
+			if RokaReady == false and _G.Auto == true then
 				repeat
 					if RokakTotal < _G.DefaultRokaka then
 						local HavedMoney = (RokakTotal/5) * 13750
@@ -377,7 +377,7 @@ while wait() do
 				RokaReady = true
 			end
 
-			if ArrowReady == false then
+			if ArrowReady == false and _G.Auto == true then
 				if game:GetService("Players").LocalPlayer.Data[_G.Stand["Slot"].."Stand"].Value ~= _G.Stand["Stand"] then
 					spawn(function()
 						repeat
